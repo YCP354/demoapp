@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DemoApp</string>
+    <string name="lable_sim_test">SIM卡测试</string>
+    <string name="lable_photo_test">照片选择器测试</string>
+</resources>
