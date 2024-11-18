@@ -9,73 +9,67 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.demoapp.adapter.ImageAdapter
 
 class PhotoPickerActivity : BaseActivity() {
 
     override val resId: Int
         get() = R.layout.activity_photo_picker
-    private lateinit var pickSingleImageLauncher: ActivityResultLauncher<Intent>
-    private lateinit var pickMultipleImagesLauncher: ActivityResultLauncher<Intent>
-    private lateinit var imageView: ImageView
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var imageAdapter: ImageAdapter
+    private val selectedUris = mutableListOf<Uri>()
+
 
     override fun initView() {
         super.initView()
-
-        imageView = findViewById(R.id.imageView)
         val pickSingleImageButton: Button = findViewById(R.id.pickSingleImageButton)
         val pickMultipleImagesButton: Button = findViewById(R.id.pickMultipleImagesButton)
+        recyclerView = findViewById(R.id.recyclerView);
 
-        // 注册单张图片选择器
-        pickSingleImageLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val uri: Uri? = result.data?.data
+        recyclerView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        imageAdapter = ImageAdapter(selectedUris)
+        recyclerView.adapter = imageAdapter
+
+        // 单张图片选择
+        val pickSingleMediaLauncher =
+            registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
                 if (uri != null) {
-                    imageView.setImageURI(uri)
-                }
-            }
-        }
-
-        // 注册多张图片选择器
-        pickMultipleImagesLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val clipData = result.data?.clipData
-                if (clipData != null) {
-                    // 多张图片选择
-                    for (i in 0 until clipData.itemCount) {
-                        val imageUri = clipData.getItemAt(i).uri
-                        // 这里只是处理第一张图片，你可以根据需求加载更多图片
-                        if (i == 0) {
-                            imageView.setImageURI(imageUri)
-                        }
-                    }
+                    selectedUris.clear()
+                    selectedUris.add(uri)
+                    imageAdapter.notifyDataSetChanged()
                 } else {
-                    // 单张图片选择
-                    val imageUri = result.data?.data
-                    if (imageUri != null) {
-                        imageView.setImageURI(imageUri)
-                    }
+                    Toast.makeText(this, "未选择任何图片", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
 
-        // 单张图片选择按钮点击事件
+        // 多张图片选择
+        val pickMultipleMediaLauncher =
+            registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(3)) { uris: List<Uri> ->
+                if (uris.isNotEmpty()) {
+                    selectedUris.clear()
+                    selectedUris.addAll(uris)
+                    imageAdapter.notifyDataSetChanged()
+                    Toast.makeText(this, "选择了 ${uris.size} 张图片", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "未选择任何图片", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        // 单张图片按钮点击事件
         pickSingleImageButton.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            pickSingleImageLauncher.launch(intent)
+            pickSingleMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+
         }
 
-        // 多张图片选择按钮点击事件
+        // 多张图片按钮点击事件
         pickMultipleImagesButton.setOnClickListener {
-                val intent = Intent(Intent.ACTION_PICK)
-                intent.type = "image/*"
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                pickMultipleImagesLauncher.launch(intent)
+            pickMultipleMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
 }
