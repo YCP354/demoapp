@@ -17,6 +17,7 @@ public class ExceptionTest {
         return sum;
     }
 
+
     // 3. 潜在错误（空指针异常）
     public void printStringLength(String str) {
         System.out.println(str.length());  // 如果str是null，这里会抛出NullPointerException
