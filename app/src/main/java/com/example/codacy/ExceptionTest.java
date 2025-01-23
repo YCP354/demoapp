@@ -40,6 +40,8 @@ public class ExceptionTest {
     public void calculate() {
         int unusedVariable = 5;  // 该变量未被使用
         System.out.println("Hello World");
+        int x = 10;
+        x = 20;  // PMD 会提示 "Avoid reassigning variables unnecessarily"
     }
 
     // 6. 安全问题（SQL注入）
@@ -62,6 +64,7 @@ public class ExceptionTest {
     public void unnecessaryObjectCreation() {
         String str = new String("Hello!");  // 不必要的对象创建，直接使用字面量即可
         System.out.println(str);
+        str = null;
     }
 
     // 10. 不必要的类型转换
