@@ -19,4 +19,11 @@
         android:text="@string/lable_photo_test"
         app:layout_constraintEnd_toStartOf="@id/btn_sim"
         app:layout_constraintTop_toBottomOf="@id/btn_sim" />
+    <Button
+        android:id="@+id/btn_camera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/lable_camera"
+        app:layout_constraintEnd_toStartOf="@id/btn_photo"
+        app:layout_constraintTop_toBottomOf="@id/btn_photo" />
 </androidx.constraintlayout.widget.ConstraintLayout>

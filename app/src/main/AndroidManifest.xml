@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -28,6 +30,8 @@
         </activity>
         <activity android:name=".SIMActivity" />
         <activity android:name=".PhotoPickerActivity" />
+        <activity android:name="com.example.camera.CameraActivity"/>
+        <activity android:name="com.example.camera.FileListActivity"/>
     </application>
 
 </manifest>
