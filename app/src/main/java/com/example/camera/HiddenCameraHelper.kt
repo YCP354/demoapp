@@ -79,13 +79,40 @@ class HiddenCameraHelper(
 
     private fun captureImage(session: CameraCaptureSession, cameraId: String) {
         try {
-            val rotation = calculateImageRotation(cameraId, deviceOrientation)
+//            val rotation = calculateImageRotation(cameraId, deviceOrientation)
             val requestBuilder = cameraDevice.createCaptureRequest(
                 CameraDevice.TEMPLATE_STILL_CAPTURE
             ).apply {
                 addTarget(imageReader.surface)
-                set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO)
-                set(CaptureRequest.JPEG_ORIENTATION, rotation)
+                // 1. 自动对焦（人像模式）
+                set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+
+                // 2. 自动曝光
+                set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
+                set(CaptureRequest.CONTROL_AE_LOCK, false)
+
+                // 3. 自动白平衡
+                set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_AUTO)
+
+                // 4. 降噪
+                set(CaptureRequest.NOISE_REDUCTION_MODE, CaptureRequest.NOISE_REDUCTION_MODE_HIGH_QUALITY)
+
+                // 5. 柔和人像
+                set(CaptureRequest.EDGE_MODE, CaptureRequest.EDGE_MODE_ZERO_SHUTTER_LAG)
+
+                // 6. 低 ISO（减少噪点）
+                set(CaptureRequest.SENSOR_SENSITIVITY, 125)
+
+                // 设置快门速度 (曝光时间) 1/60 秒
+                set(CaptureRequest.SENSOR_EXPOSURE_TIME, (1_000_000_000L / 60))  // 纳秒单位
+                // 7. 旋转角度（防止照片方向错误）
+//                set(CaptureRequest.JPEG_ORIENTATION, rotation)
+
+                // **自动对焦模式**
+                set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
+
+                set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)
+                set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)
             }
 
             session.capture(
