@@ -1,9 +1,13 @@
 package com.example.socket
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
@@ -11,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.demoapp.R
 import java.net.Inet4Address
 import java.net.NetworkInterface
+
 
 class SocketConnectActivity : AppCompatActivity() {
 
@@ -20,6 +25,10 @@ class SocketConnectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actvity_socket_connect)
         initData()
+    }
+
+    override fun onBackPressed() {
+
     }
 
     @SuppressLint("SetTextI18n")
@@ -63,6 +72,21 @@ class SocketConnectActivity : AppCompatActivity() {
                 Log.d(TAG, "onClientDisconnected() called with: conn = $conn")            }
         })
         server.start()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 及以上
+            window.setDecorFitsSystemWindows(false)
+            val controller = window.insetsController
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            // Android 10 及以下
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        }
     }
 
     fun getLocalIpAddress(): String? {

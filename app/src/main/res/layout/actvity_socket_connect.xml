@@ -12,6 +12,7 @@
 
     <EditText
         android:id="@+id/edit_tv"
+        android:text="请输入内容并回车"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>
