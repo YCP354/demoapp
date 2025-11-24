@@ -1,53 +1,32 @@
 package com.example.demoapp
 
+import PclmGenerator
+import UsbPrinterHelper
 import android.annotation.SuppressLint
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
-import android.hardware.usb.UsbConstants
-import android.hardware.usb.UsbDevice
-import android.hardware.usb.UsbDeviceConnection
-import android.hardware.usb.UsbEndpoint
-import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.CancellationSignal
-import android.os.ParcelFileDescriptor
-import android.print.PageRange
-import android.print.PrintAttributes
-import android.print.PrintDocumentAdapter
-import android.print.PrintDocumentInfo
-import android.print.PrintManager
-import android.util.Log
-import android.util.Log.e
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.utils.MiniTestGenerator
 import com.example.utils.PdfDiagnostics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import kotlin.experimental.or
-import kotlin.math.min
+import androidx.core.graphics.createBitmap
 
 class PrinterActivity : AppCompatActivity() {
 
@@ -60,14 +39,15 @@ class PrinterActivity : AppCompatActivity() {
     private var selectedUri: Uri? = null
 
     // 相册选择器
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            selectedUri = it
-            ivPreview.setImageURI(it) // 显示预览
-            tvStatus.text = "图片已选择，准备打印"
-            btnPrint.isEnabled = true
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                selectedUri = it
+                ivPreview.setImageURI(it) // 显示预览
+                tvStatus.text = "图片已选择，准备打印"
+                btnPrint.isEnabled = true
+            }
         }
-    }
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +65,9 @@ class PrinterActivity : AppCompatActivity() {
         // 1. 点击选择图片
         btnSelectPhoto.setOnClickListener {
             pickImageLauncher.launch("image/*")
+//            val pdfFile = getPdfFromAssets("usb_dump.pdf")
+
+//            DeepImageAnalyzer.analyzeImageStream(pdfFile)
         }
 
         // 2. 点击打印
@@ -94,6 +77,7 @@ class PrinterActivity : AppCompatActivity() {
             }
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
     }
@@ -125,24 +109,24 @@ class PrinterActivity : AppCompatActivity() {
                 val bitmap = loadScaledBitmap(uri) ?: throw Exception("图片加载失败")
 
                 // 2. 将图片画在白色背景上 (处理透明 PNG 变黑问题)
-                val finalBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                val finalBitmap =
+                    createBitmap(bitmap.width, bitmap.height)
                 val canvas = Canvas(finalBitmap)
                 canvas.drawColor(Color.WHITE)
                 canvas.drawBitmap(bitmap, 0f, 0f, null)
                 bitmap.recycle() // 释放原图
 
                 // 3. 生成 PCLm 文件
-                val outputFile = File(cacheDir, "temp_print.pdf")
+                var outputFile = File(cacheDir, "temp_print.pdf")
                 PclmGenerator.generatePclmPdf(finalBitmap, outputFile)
                 finalBitmap.recycle() // 释放合成图
 
-
 // --- 插入诊断代码 ---
-                    // 1. 定位参考文件 (请确保你已经 push 进去了)
-                    val refFile = getPdfFromAssets("usb_dump.pdf")
+                // 1. 定位参考文件 (请确保你已经 push 进去了)
+                val refFile = getPdfFromAssets("usb_dump.pdf")
 
-                    // 2. 执行对比
-                    PdfDiagnostics.compareFiles(outputFile, refFile)
+                // 2. 执行对比
+                PdfDiagnostics.compareFiles(outputFile, refFile)
 
                 withContext(Dispatchers.Main) {
                     tvStatus.text = "正在连接打印机..."
@@ -156,7 +140,8 @@ class PrinterActivity : AppCompatActivity() {
                 val device = printers[0]
 
                 // 5. 发送打印
-                val result = UsbPrinterHelper.printPclmFile(this@PrinterActivity, device, outputFile)
+                val result =
+                    UsbPrinterHelper.printPclmFile(this@PrinterActivity, device, outputFile)
 
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
@@ -198,5 +183,45 @@ class PrinterActivity : AppCompatActivity() {
         options.inJustDecodeBounds = false
         options.inSampleSize = inSampleSize
         return BitmapFactory.decodeStream(input2, null, options)
+    }
+
+    suspend fun printRawTextTest(context: Context) {
+        val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+        val printers = UsbPrinterHelper.getConnectedPrinters(context)
+        if (printers.isEmpty()) return
+        val device = printers[0]
+
+        // 1. 准备纯文本数据
+        // \u001B%-12345X: 通用退出指令 (UEL)
+        // @PJL ENTER LANGUAGE=PCL: 尝试切换到 PCL 模式 (而不是 PCLm)
+        val content = """
+        %-12345X@PJL ENTER LANGUAGE=PCL
+        @PJL RESET
+        
+        Hello World!
+        This is a Raw Text Test.
+        1234567890
+        
+        
+        %-12345X
+    """.trimIndent()
+
+        // 注意： 是换页符 (Form Feed, 0x0C)，告诉打印机“这页打完了，吐纸”
+
+        // 2. 发送
+        withContext(Dispatchers.IO) {
+            val connection = usbManager.openDevice(device) ?: return@withContext
+            val ifacePair = UsbPrinterHelper.findPrinterInterface(device) ?: return@withContext
+            val iface = ifacePair.first
+            val endpoint = ifacePair.second
+
+            connection.claimInterface(iface, true)
+
+            val bytes = content.toByteArray(Charsets.US_ASCII)
+            connection.bulkTransfer(endpoint, bytes, bytes.size, 5000)
+
+            connection.releaseInterface(iface)
+            connection.close()
+        }
     }
 }

@@ -74,7 +74,6 @@ object UsbPrinterHelper {
                 connection.bulkTransfer(endpoint, PJL_FOOTER, PJL_FOOTER.size, TIMEOUT_MS)
 
                 return@withContext Result.success("发送完成")
-
             } catch (e: Exception) {
                 return@withContext Result.failure(e)
             } finally {
@@ -84,7 +83,7 @@ object UsbPrinterHelper {
         }
     }
 
-    private fun findPrinterInterface(device: UsbDevice): Pair<UsbInterface, UsbEndpoint>? {
+    internal fun findPrinterInterface(device: UsbDevice): Pair<UsbInterface, UsbEndpoint>? {
         for (i in 0 until device.interfaceCount) {
             val iface = device.getInterface(i)
             for (j in 0 until iface.endpointCount) {
