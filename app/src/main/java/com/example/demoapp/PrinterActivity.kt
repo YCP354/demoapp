@@ -29,6 +29,7 @@ import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import android.util.Log
+import android.util.Log.e
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -38,6 +39,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.utils.PclmGenerator
+import com.example.utils.PdfDiagnostics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -134,6 +136,14 @@ class PrinterActivity : AppCompatActivity() {
                 val outputFile = File(cacheDir, "temp_print.pdf")
                 PclmGenerator.generatePclmPdf(finalBitmap, outputFile)
                 finalBitmap.recycle() // 释放合成图
+
+
+// --- 插入诊断代码 ---
+                    // 1. 定位参考文件 (请确保你已经 push 进去了)
+                    val refFile = getPdfFromAssets("usb_dump.pdf")
+
+                    // 2. 执行对比
+                    PdfDiagnostics.compareFiles(outputFile, refFile)
 
                 withContext(Dispatchers.Main) {
                     tvStatus.text = "正在连接打印机..."
