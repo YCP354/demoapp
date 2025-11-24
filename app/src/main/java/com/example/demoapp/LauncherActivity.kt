@@ -1,7 +1,6 @@
 package com.example.demoapp
 
 import android.content.Intent
-import android.os.Bundle
 import android.widget.Button
 
 class LauncherActivity : BaseActivity() {
@@ -16,6 +15,9 @@ class LauncherActivity : BaseActivity() {
 
         findViewById<Button>(R.id.btn_photo).setOnClickListener {
             navigate(Intent(this, PhotoPickerActivity::class.java))
+        }
+        findViewById<Button>(R.id.btn_printer).setOnClickListener {
+            navigate(Intent(this, PrinterActivity::class.java))
         }
     }
 }
