@@ -38,7 +38,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.utils.PclmGenerator
 import com.example.utils.PdfDiagnostics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
