@@ -27,6 +27,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import androidx.core.graphics.createBitmap
+import com.example.utils.HexDumpAnalyzer
+import com.example.utils.StreamHunter
 
 class PrinterActivity : AppCompatActivity() {
 
@@ -75,6 +77,10 @@ class PrinterActivity : AppCompatActivity() {
             selectedUri?.let { uri ->
                 processAndPrint(uri)
             }
+//            val outFile = File(filesDir, "qr_usb_dump.pdf")    // 或 pdf / pcl / 任意文件名
+//            copyAssetToFile(this, "qr_usb_dump.pdf", outFile)
+//            HexDumpAnalyzer.analyze(this, outFile.absolutePath)
+//            StreamHunter.hunt(this,outFile)
         }
     }
 
@@ -96,6 +102,17 @@ class PrinterActivity : AppCompatActivity() {
             }
         }
 
+        return outFile
+    }
+
+    fun copyAssetToFile(context: Context, assetName: String, outFile: File): File {
+        if (!outFile.exists()) {
+            context.assets.open(assetName).use { input ->
+                FileOutputStream(outFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
         return outFile
     }
 
@@ -139,6 +156,7 @@ class PrinterActivity : AppCompatActivity() {
                 }
                 val device = printers[0]
 
+//                outputFile = getPdfFromAssets("qr_usb_dump.pdf")
                 // 5. 发送打印
                 val result =
                     UsbPrinterHelper.printPclmFile(this@PrinterActivity, device, outputFile)
