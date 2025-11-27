@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnSetDefault"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="设置为默认短信应用" />
+
+    <Button
+        android:id="@+id/btnInsertSms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="写入模拟短信" />
+
+    <Button
+        android:id="@+id/btnResetDefault"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="恢复默认短信应用" />
+</LinearLayout>

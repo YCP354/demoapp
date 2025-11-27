@@ -1,6 +1,5 @@
 package com.example.demoapp
 
-import PclmGenerator
 import UsbPrinterHelper
 import android.annotation.SuppressLint
 import android.content.Context
@@ -17,18 +16,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.lifecycleScope
-import com.example.utils.MiniTestGenerator
-import com.example.utils.PdfDiagnostics
+import com.example.utils.PrinterDataGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import androidx.core.graphics.createBitmap
-import com.example.utils.HexDumpAnalyzer
-import com.example.utils.StreamHunter
+import kotlin.math.roundToInt
 
 class PrinterActivity : AppCompatActivity() {
 
@@ -135,15 +132,17 @@ class PrinterActivity : AppCompatActivity() {
 
                 // 3. 生成 PCLm 文件
                 var outputFile = File(cacheDir, "temp_print.pdf")
-                PclmGenerator.generatePclmPdf(finalBitmap, outputFile)
+//                PclmGenerator.generatePclmPdf(finalBitmap, outputFile)
+                copyAssetToFileDir(this@PrinterActivity,"libhplip.so","libhplip.so",true)
+                outputFile = PrinterDataGenerator.generateFromUri(this@PrinterActivity,uri,"/data/data/com.example.demoapp/files/libhplip.so")
                 finalBitmap.recycle() // 释放合成图
 
 // --- 插入诊断代码 ---
                 // 1. 定位参考文件 (请确保你已经 push 进去了)
-                val refFile = getPdfFromAssets("usb_dump.pdf")
+//                val refFile = getPdfFromAssets("usb_dump.pdf")
 
                 // 2. 执行对比
-                PdfDiagnostics.compareFiles(outputFile, refFile)
+//                PdfDiagnostics.compareFiles(outputFile, refFile)
 
                 withContext(Dispatchers.Main) {
                     tvStatus.text = "正在连接打印机..."
@@ -194,13 +193,53 @@ class PrinterActivity : AppCompatActivity() {
 
         var inSampleSize = 1
         if (options.outWidth > targetWidth) {
-            inSampleSize = Math.round(options.outWidth.toFloat() / targetWidth)
+            inSampleSize = (options.outWidth.toFloat() / targetWidth).roundToInt()
         }
 
         val input2 = contentResolver.openInputStream(uri)
         options.inJustDecodeBounds = false
         options.inSampleSize = inSampleSize
         return BitmapFactory.decodeStream(input2, null, options)
+    }
+
+    fun copyAssetToFileDir(
+        context: Context,
+        assetFileName: String,
+        targetFileName: String = assetFileName,
+        overwrite: Boolean = true
+    ): File? {
+        return try {
+            val targetFile = File(context.filesDir, targetFileName)
+
+            // 文件已存在且不覆盖
+            if (targetFile.exists() && !overwrite) {
+                return targetFile
+            }
+
+            // 打开 assets 输入流
+            val inputStream = context.assets.open(assetFileName)
+
+            // 创建输出流
+            val outputStream = FileOutputStream(targetFile)
+
+            val buffer = ByteArray(4096)
+            var length: Int
+
+            // 拷贝数据
+            while (inputStream.read(buffer).also { length = it } > 0) {
+                outputStream.write(buffer, 0, length)
+            }
+
+            outputStream.flush()
+            outputStream.close()
+            inputStream.close()
+
+            targetFile
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     suspend fun printRawTextTest(context: Context) {
