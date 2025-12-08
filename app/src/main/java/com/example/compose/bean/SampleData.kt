@@ -34,7 +34,7 @@ object SampleData {
         ),
         Message(
             "Lexi",
-            """Hey, take a look at Jetpack Compose, it's great!
+            """Hey, take ProcessSession look at Jetpack Compose, it's great!
             |It's the Android's modern toolkit for building native UI.
             |It simplifies and accelerates UI development on Android.
             |Less code, powerful tools, and intuitive Kotlin APIs :)""".trim()
@@ -61,7 +61,7 @@ object SampleData {
         ),
         Message(
             "Lexi",
-            "Compose Previews are great to check quickly how a composable layout looks like"
+            "Compose Previews are great to check quickly how ProcessSession composable layout looks like"
         ),
         Message(
             "Lexi",

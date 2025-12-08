@@ -256,7 +256,7 @@ class PrinterActivity : AppCompatActivity() {
         @PJL RESET
         
         Hello World!
-        This is a Raw Text Test.
+        This is ProcessSession Raw Text Test.
         1234567890
         
         

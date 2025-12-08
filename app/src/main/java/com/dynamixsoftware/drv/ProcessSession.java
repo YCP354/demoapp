@@ -1,6 +1,8 @@
 package com.dynamixsoftware.drv;
 
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -11,8 +13,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 /* loaded from: classes.dex */
-public class a {
+public class ProcessSession {
 
+    private static final String TAG = "ProcessSession";
     /* renamed from: Status, reason: collision with root package name */
     private final DrvRuntime f12493a;
 
@@ -22,14 +25,14 @@ public class a {
     /* renamed from: ViewModelImpl, reason: collision with root package name */
     private final OutputStream f12495c;
 
-    /* renamed from: d, reason: collision with root package name */
+    /* renamed from: MyThread, reason: collision with root package name */
     private final InputStream f12496d;
 
     /* renamed from: e, reason: collision with root package name */
     private final InputStream f12497e;
 
     /* renamed from: f, reason: collision with root package name */
-    private Thread f12498f = null;
+    private Thread myThread = null;
 
     /* renamed from: g, reason: collision with root package name */
     private final byte[] f12499g = new byte[8192];
@@ -113,7 +116,7 @@ public class a {
         }
     }
 
-    class d extends Thread {
+    class MyThread extends Thread {
 
         /* renamed from: Status, reason: collision with root package name */
         private final byte[][] f12511a = {new byte[]{27, 91, 75, 2, 0, 0}, new byte[]{60, 63, 120, 109, 108, 32}};
@@ -124,10 +127,10 @@ public class a {
         /* renamed from: ViewModelImpl, reason: collision with root package name */
         final /* synthetic */ boolean f12513c;
 
-        /* renamed from: d, reason: collision with root package name */
+        /* renamed from: MyThread, reason: collision with root package name */
         final /* synthetic */ boolean f12514d;
 
-        d(OutputStream outputStream, boolean z6, boolean z7) {
+        MyThread(OutputStream outputStream, boolean z6, boolean z7) {
             this.f12512b = outputStream;
             this.f12513c = z6;
             this.f12514d = z7;
@@ -136,20 +139,20 @@ public class a {
         private void a() throws IOException {
             if (this.f12514d) {
                 int i7 = 0;
-                for (int i8 = 0; i8 < a.this.f12500h; i8++) {
-                    if (i7 < i8 && c(a.this.f12499g, i8, a.this.f12500h, this.f12511a)) {
-                        this.f12512b.write(a.this.f12499g, i7, i8 - i7);
+                for (int i8 = 0; i8 < ProcessSession.this.f12500h; i8++) {
+                    if (i7 < i8 && c(ProcessSession.this.f12499g, i8, ProcessSession.this.f12500h, this.f12511a)) {
+                        this.f12512b.write(ProcessSession.this.f12499g, i7, i8 - i7);
                         this.f12512b.flush();
                         i7 = i8;
                     }
                 }
-                if (i7 < a.this.f12500h) {
-                    this.f12512b.write(a.this.f12499g, i7, a.this.f12500h - i7);
+                if (i7 < ProcessSession.this.f12500h) {
+                    this.f12512b.write(ProcessSession.this.f12499g, i7, ProcessSession.this.f12500h - i7);
                 }
             } else {
-                this.f12512b.write(a.this.f12499g, 0, a.this.f12500h);
+                this.f12512b.write(ProcessSession.this.f12499g, 0, ProcessSession.this.f12500h);
             }
-            a.this.f12500h = 0;
+            ProcessSession.this.f12500h = 0;
         }
 
         private boolean b(byte[] bArr, int i7, int i8, byte[] bArr2) {
@@ -175,18 +178,19 @@ public class a {
 
         private int d(byte[] bArr) throws IOException {
             synchronized (this) {
-                a.this.f12501i = true;
-                a.this.f12502j = System.currentTimeMillis();
+                ProcessSession.this.f12501i = true;
+                ProcessSession.this.f12502j = System.currentTimeMillis();
             }
-            int i7 = (this.f12513c ? a.this.f12497e : a.this.f12496d).read(bArr);
+            int i7 = (this.f12513c ? ProcessSession.this.f12497e : ProcessSession.this.f12496d).read(bArr);
             synchronized (this) {
-                a.this.f12501i = false;
+                ProcessSession.this.f12501i = false;
             }
             return i7;
         }
 
         @Override // java.lang.Thread, java.lang.Runnable
         public void run() {
+            Log.d(TAG, "run() called");
             byte[] bArr = new byte[4096];
             while (true) {
                 try {
@@ -194,17 +198,21 @@ public class a {
                     if (iD == -1) {
                         a();
                         this.f12512b.flush();
+                        Log.d(TAG, "run: 读取数据为0返回");
                         return;
                     } else {
-                        if (a.this.f12500h + iD > a.this.f12499g.length) {
+                        if (ProcessSession.this.f12500h + iD > ProcessSession.this.f12499g.length) {
                             a();
                         }
-                        System.arraycopy(bArr, 0, a.this.f12499g, a.this.f12500h, iD);
-                        a.this.f12500h += iD;
+                        System.arraycopy(bArr, 0, ProcessSession.this.f12499g, ProcessSession.this.f12500h, iD);
+                        ProcessSession.this.f12500h += iD;
+                        Log.d(TAG, "run: 读取数据长度为"+iD);
                     }
                 } catch (Exception e7) {
-                    a.this.f12503k = e7;
-                    a.this.k();
+                    ProcessSession.this.f12503k = e7;
+                    ProcessSession.this.k();
+                    e7.printStackTrace();
+                    Log.d(TAG, "run: 读取数据异常",e7);
                     return;
                 }
             }
@@ -218,13 +226,13 @@ public class a {
         @Override // java.lang.Thread, java.lang.Runnable
         public void run() {
             try {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(a.this.f12497e));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(ProcessSession.this.f12497e));
                 while (true) {
                     String line = bufferedReader.readLine();
                     if (line == null) {
                         return;
                     }
-                    StringBuilder sb = a.this.f12504l;
+                    StringBuilder sb = ProcessSession.this.f12504l;
                     sb.append(line);
                     sb.append("\n");
                 }
@@ -233,7 +241,7 @@ public class a {
         }
     }
 
-    public a(DrvRuntime drvRuntime, long j7, int[] iArr) {
+    public ProcessSession(DrvRuntime drvRuntime, long j7, int[] iArr) {
         this.f12493a = drvRuntime;
         this.f12494b = j7;
         ParcelFileDescriptor parcelFileDescriptorAdoptFd = ParcelFileDescriptor.adoptFd(iArr[0]);
@@ -245,8 +253,8 @@ public class a {
     }
 
     public void j(OutputStream outputStream, boolean z6, boolean z7) {
-        d dVar = new d(outputStream, z6, z7);
-        this.f12498f = dVar;
+        MyThread dVar = new MyThread(outputStream, z6, z7);
+        this.myThread = dVar;
         dVar.start();
         if (z6) {
             return;
@@ -283,13 +291,13 @@ public class a {
     }
 
     public void r() {
-        while (this.f12498f.isAlive()) {
+        while (this.myThread.isAlive()) {
             Thread.yield();
         }
     }
 
     public void s() {
-        while (this.f12498f.isAlive()) {
+        while (this.myThread.isAlive()) {
             if (this.f12501i && System.currentTimeMillis() - this.f12502j > 10) {
                 return;
             } else {

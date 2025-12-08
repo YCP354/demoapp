@@ -65,7 +65,7 @@ public abstract class DrvRuntime {
         native int procWait(long j7);
     }
 
-    public static a a(String[] strArr, String[] strArr2) {
+    public static ProcessSession a(String[] strArr, String[] strArr2) {
         File file = new File(strArr[0]);
         String str = file.getName().split("\\.")[0];
         Hashtable hashtable = f12492a;
@@ -89,7 +89,7 @@ public abstract class DrvRuntime {
         if (file.getParentFile() != null) {
             file = file.getParentFile();
         }
-        return new a(drvRuntimeC, drvRuntimeC.procExec(strArr, strArr3, file.getAbsolutePath(), iArr), iArr);
+        return new ProcessSession(drvRuntimeC, drvRuntimeC.procExec(strArr, strArr3, file.getAbsolutePath(), iArr), iArr);
     }
 
     private static void b(String str) {

@@ -81,7 +81,7 @@ object PdfDiagnostics {
         // 简单的正则匹配 PDF 键值对，例如 /Width 1200 或 /Filter /RunLengthDecode
         // 匹配 key 后面的空格，然后捕获非空白、非 >、非 / 的内容
         // 注意：PDF 结构复杂，这里做简化假设，只找第一个匹配项
-        val regex = Regex("$key\\s*[\\[\\/]?([a-zA-Z0-9]+)")
+        val regex = Regex("$key\\s*[\\[\\/]?([ProcessSession-zA-Z0-9]+)")
         val match = regex.find(content)
         return if (match != null) {
             // 如果捕获到的是 Name 对象 (例如 DCTDecode)，补回前面的 / 以便阅读
