@@ -9,7 +9,7 @@ import java.io.*
  */
 class ProcessSessionKt(
     // 对应 f12493a
-    private val runtime: DrvRuntimeKt,
+    private val runtime: DrvRuntime,
     // 对应 f12494b
     private val pid: Long,
     fds: IntArray

@@ -3,7 +3,6 @@ package com.example.utils
 import android.content.Context
 import android.net.Uri
 import com.dynamixsoftware.drv.DrvRuntime
-import com.dynamixsoftware.drv.ProcessSession
 import com.dynamixsoftware.drv.ProcessSessionKt
 import java.io.File
 import java.io.FileOutputStream
@@ -30,12 +29,12 @@ object PrinterDataGenerator {
         val cmd = arrayOf(soPath, "-i", inputFile.absolutePath, "-o", "-")
 
         // 4. 调用 drvRuntime 执行
-        val processHandler: ProcessSession = DrvRuntime.a(cmd, null)
+        val processHandler: ProcessSessionKt = DrvRuntime.a(cmd, null)
 
         // 5. 输出到文件
         FileOutputStream(outFile).use { fos ->
-            processHandler.j(fos, false, false)
-            processHandler.r() // 等待线程完成
+            processHandler.startStreams(fos, false, false)
+            processHandler.waitForProcess() // 等待线程完成
         }
 
         // 6. 检查结果
